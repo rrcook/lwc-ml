@@ -1,5 +1,6 @@
 <aura:component implements="flexipage:availableForAllPageTypes">
-    <ltng:require scripts='/resource/tf/tf.js'/>
+    <ltng:require scripts='/resource/tf/tf.min.js,/resource/ml5/ml5.min.js' afterScriptsLoaded="{!c.scriptsLoaded}" />
 
-    <c:tfPlayground aura:id="playground" ongetversion="{!c.handleGetVersion}" />
-</aura:component>	
+    <c:tfPlayground aura:id="playground" ongettfversion="{!c.handleGetTfVersion}"
+        ongetml5version="{!c.handleGetMl5Version}" />
+</aura:component>
