@@ -1,5 +1,7 @@
 <aura:component implements="flexipage:availableForAllPageTypes">
-    <ltng:require scripts='/resource/tf/tf.min.js,/resource/ml5/ml5.min.js' afterScriptsLoaded="{!c.scriptsLoaded}" />
+    <!-- loading ml5 is changing the platform/environment for 'browser' and interfering with tf. TODO figure out later -->
+    <!-- <ltng:require scripts='/resource/tf/tf.js,/resource/ml5/ml5.min.js' afterScriptsLoaded="{!c.scriptsLoaded}" /> -->
+    <ltng:require scripts='/resource/tf/tf.js' afterScriptsLoaded="{!c.scriptsLoaded}" />
 
     <c:tfPlayground aura:id="playground" ongettfversion="{!c.handleGetTfVersion}"
         ongetml5version="{!c.handleGetMl5Version}" 

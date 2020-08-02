@@ -15,6 +15,7 @@
     },
 
     runBostonHousing: function (component, bostonData) {
+        // Synchronous setup.
         console.log(`host in run boston housing`);
         const playground = component.find('playground');
         this.bostonData = bostonData;
@@ -24,6 +25,46 @@
 
         const model = this.multiLayerPerceptronRegressionModel2Hidden();
         console.log(`host model is ${model.toString()}`);
+        console.log(`Backend is ${tf.getBackend()}`);
+        console.log(`Browser is ${JSON.stringify(tf.env().get('IS_BROWSER'))}`)
+        console.log(`Environment is ${JSON.stringify(tf.env().platform)}`);
+
+
+        (async () => {
+            model.compile(
+                { optimizer: tf.train.sgd(this.LEARNING_RATE), loss: 'meanSquaredError' });
+
+            let trainLogs = [];
+            // const container = document.querySelector(`#${modelName} .chart`);
+
+            playground.updateStatus('Starting training process...');
+            await model.fit(this.tensors.trainFeatures, this.tensors.trainTargets, {
+                batchSize: this.BATCH_SIZE,
+                epochs: this.NUM_EPOCHS,
+                validationSplit: 0.2,
+                callbacks: {
+                    onEpochEnd: async (epoch, logs) => {
+                        await playground.updateModelStatus(
+                            `Epoch ${epoch + 1} of ${this.NUM_EPOCHS} completed.`);
+                        trainLogs.push(logs);
+                        // tfvis.show.history(container, trainLogs, ['loss', 'val_loss'])
+
+                    }
+                }
+            });
+
+            playground.updateStatus('Running on test data...');
+            const result = model.evaluate(
+                this.tensors.testFeatures, this.tensors.testTargets, { batchSize: this.BATCH_SIZE });
+            const testLoss = result.dataSync()[0];
+
+            const trainLoss = trainLogs[trainLogs.length - 1].loss;
+            const valLoss = trainLogs[trainLogs.length - 1].val_loss;
+            await playground.updateModelStatus(
+                `Final train-set loss: ${trainLoss.toFixed(4)}\n` +
+                `Final validation-set loss: ${valLoss.toFixed(4)}\n` +
+                `Test-set loss: ${testLoss.toFixed(4)}`);
+        })();
 
     },
 
