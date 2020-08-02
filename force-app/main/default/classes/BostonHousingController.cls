@@ -1,7 +1,7 @@
 public with sharing class BostonHousingController {
 
     @AuraEnabled(cacheable=true)
-    public static List<Boston_Housing_Data__c> findData(String testKey) {
+    public static List<Boston_Housing_Data__c> findFeatures(String testKey) {
         return [
             SELECT 
                 Crime_Rate__c,
