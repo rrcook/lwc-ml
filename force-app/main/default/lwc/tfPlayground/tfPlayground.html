@@ -4,5 +4,18 @@
             <p>TensorFlow version {tfVersion}.</p>
             <p>ML5 version {ml5Version}.</p>
         </div>
+        <div class="slds-m-around_medium">
+            <lightning-layout vertical-align="end" class="slds-m-bottom_small">
+                <lightning-layout-item class="slds-p-left_xx-small">
+                    <lightning-button label="Run" onclick={handleRunBostonHousingClick}></lightning-button>
+                </lightning-layout-item>
+            </lightning-layout>
+            <lightning-layout vertical-align="end" class="slds-m-bottom_small">
+                <lightning-layout-item class="slds-p-left_xx-small">
+                    <p><lightning-formatted-text value={statusMessage}></lightning-formatted-text></p>
+                </lightning-layout-item>
+            </lightning-layout>
+        </div>
+
     </lightning-card>
 </template>
