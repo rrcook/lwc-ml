@@ -14,7 +14,7 @@ Here, all the communication with Salesforce, and user interface, is done with a 
 
 ## The TensorFlow.js project - Machine learning on the Boston Housing dataset
 
-To prove the concept I used a common example project for TensorFlow.js, a linear regression-type problem using the Boston Housing dataset. The TensorFlow code is adapted from [The TensorFlow.js example code](https://github.com/tensorflow/tfjs-examples/tree/master/boston-housing). The code was brought to my attention from reading [Manning's "Deep Learning with JavaScript](https://www.manning.com/books/deep-learning-with-javascript?query=deep%20learning%20with%20j).
+To prove the concept I used a common example project for TensorFlow.js, a linear regression-type problem using the Boston Housing dataset. The TensorFlow code is adapted from [The TensorFlow.js example code](https://github.com/tensorflow/tfjs-examples/tree/master/boston-housing). The code was brought to my attention from reading [Manning's "Deep Learning with JavaScript"](https://www.manning.com/books/deep-learning-with-javascript?query=deep%20learning%20with%20j).
 
 ### TODOs
 
