@@ -1,58 +1,28 @@
-# Salesforce App
+# Using TensorFlow.js inside Salesforce for machine learning
 
-This guide helps Salesforce developers who are new to Visual Studio Code go from zero to a deployed app using Salesforce Extensions for VS Code and Salesforce CLI.
+This project was developed to answer a question I had; can you run TensorFlow.js as part of Salesforce's Lightning Experience, specifically in Lightning Web Components. 
+TensorFlow.js allows you to run machine learning and deep neural network jobs in your browser. Through WebGL it can access the GPU through your browser, so you have the full power of your CPU and GPU to process jobs. Also, data is kept local, not sent off to an external site, making it better for privacy reasons.
+So can you use TensorFlow.js in a Salesforce environment, using data from your org? It turns out the answer is "Yes, but..."
 
-## Part 1: Choosing a Development Model
+The [Lightning Web Components Recipes project](https://github.com/trailheadapps/lwc-recipes) shows how to load third-party libraries, such as d3.js, but the restriction is that the libraries need to be compatible with the Salesforce Locker Service. Large, complicated libraries, such as [TensorFlow.js](https://github.com/tensorflow/tfjs) and [ML5.js](https://github.com/ml5js/ml5-library) aren't compatible, and are, frankly, too much work to winnow them down to a point where they can be compliant.
 
-There are two types of developer processes or models supported in Salesforce Extensions for VS Code and Salesforce CLI. These models are explained below. Each model offers pros and cons and is fully supported.
+There is, however, a way around this restriction. A hack or trick if you will. A Lightning Web Component can be nested inside an older-style Aura component, and the Aura component can still have the apiVersion set to 39.0, the last version before Locker Service was enforced. 
 
-### Package Development Model
+##  Impressive and Unfortunate
 
-The package development model allows you to create self-contained applications or libraries that are deployed to your org as a single package. These packages are typically developed against source-tracked orgs called scratch orgs. This development model is geared toward a more modern type of software development process that uses org source tracking, source control, and continuous integration and deployment.
+Here, all the communication with Salesforce, and user interface, is done with a modern LWC to take advantage of the latest techniques, but the LWC is nested inside an Aura component. The Aura component has no UI; it only loads the large, noncompliant JS libraries it will use, and has code that uses the libraries. The LWC sends data through custom events up to the Aura component, which kicks off code to run. Any results for the UI are sent back down to the LWC through @api decorated public methods. When I described this technique a fellow member of the Good Day Sir slack channel called it "impressive and unfortunate", and I'll own that.
 
-If you are starting a new project, we recommend that you consider the package development model. To start developing with this model in Visual Studio Code, see [Package Development Model with VS Code](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/package-development-model). For details about the model, see the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) Trailhead module.
+## The TensorFlow.js project - Machine learning on the Boston Housing dataset
 
-If you are developing against scratch orgs, use the command `SFDX: Create Project` (VS Code) or `sfdx force:project:create` (Salesforce CLI)  to create your project. If you used another command, you might want to start over with that command.
+To prove the concept I used a common example project for TensorFlow.js, a linear regression-type problem using the Boston Housing dataset. The TensorFlow code is adapted from [The TensorFlow.js example code](https://github.com/tensorflow/tfjs-examples/tree/master/boston-housing). The code was brought to my attention from reading [Manning's "Deep Learning with JavaScript](https://www.manning.com/books/deep-learning-with-javascript?query=deep%20learning%20with%20j).
 
-When working with source-tracked orgs, use the commands `SFDX: Push Source to Org` (VS Code) or `sfdx force:source:push` (Salesforce CLI) and `SFDX: Pull Source from Org` (VS Code) or `sfdx force:source:pull` (Salesforce CLI). Do not use the `Retrieve` and `Deploy` commands with scratch orgs.
+### TODOs
 
-### Org Development Model
+This is a "Minimum Viable Product" - it shows the concepts needed to use TensorFlow.js in a Salesforce context with Salesforce data, but it could use more polish.
 
-The org development model allows you to connect directly to a non-source-tracked org (sandbox, Developer Edition (DE) org, Trailhead Playground, or even a production org) to retrieve and deploy code directly. This model is similar to the type of development you have done in the past using tools such as Force.com IDE or MavensMate.
+Added will be
++ More comments where needed to explain what's going on
++ More UI elements using LWCs
++ If possible, import and display the chart that the TensorFlow code produces
++ Another project using the ML5 machine learning library
 
-To start developing with this model in Visual Studio Code, see [Org Development Model with VS Code](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-development-model). For details about the model, see the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) Trailhead module.
-
-If you are developing against non-source-tracked orgs, use the command `SFDX: Create Project with Manifest` (VS Code) or `sfdx force:project:create --manifest` (Salesforce CLI) to create your project. If you used another command, you might want to start over with this command to create a Salesforce DX project.
-
-When working with non-source-tracked orgs, use the commands `SFDX: Deploy Source to Org` (VS Code) or `sfdx force:source:deploy` (Salesforce CLI) and `SFDX: Retrieve Source from Org` (VS Code) or `sfdx force:source:retrieve` (Salesforce CLI). The `Push` and `Pull` commands work only on orgs with source tracking (scratch orgs).
-
-## The `sfdx-project.json` File
-
-The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
-
-The most important parts of this file for getting started are the `sfdcLoginUrl` and `packageDirectories` properties.
-
-The `sfdcLoginUrl` specifies the default login URL to use when authorizing an org.
-
-The `packageDirectories` filepath tells VS Code and Salesforce CLI where the metadata files for your project are stored. You need at least one package directory set in your file. The default setting is shown below. If you set the value of the `packageDirectories` property called `path` to `force-app`, by default your metadata goes in the `force-app` directory. If you want to change that directory to something like `src`, simply change the `path` value and make sure the directory you’re pointing to exists.
-
-```json
-"packageDirectories" : [
-    {
-      "path": "force-app",
-      "default": true
-    }
-]
-```
-
-## Part 2: Working with Source
-
-For details about developing against scratch orgs, see the [Package Development Model](https://trailhead.salesforce.com/en/content/learn/modules/sfdx_dev_model) module on Trailhead or [Package Development Model with VS Code](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/package-development-model).
-
-For details about developing against orgs that don’t have source tracking, see the [Org Development Model](https://trailhead.salesforce.com/content/learn/modules/org-development-model) module on Trailhead or [Org Development Model with VS Code](https://forcedotcom.github.io/salesforcedx-vscode/articles/user-guide/org-development-model).
-
-## Part 3: Deploying to Production
-
-Don’t deploy your code to production directly from Visual Studio Code. The deploy and retrieve commands do not support transactional operations, which means that a deployment can fail in a partial state. Also, the deploy and retrieve commands don’t run the tests needed for production deployments. The push and pull commands are disabled for orgs that don’t have source tracking, including production orgs.
-
-Deploy your changes to production using [packaging](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_dev2gp.htm) or by [converting your source](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_source.htm#cli_reference_convert) into metadata format and using the [metadata deploy command](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_force_mdapi.htm#cli_reference_deploy).
