@@ -9,6 +9,8 @@ export default class TfPlayground extends LightningElement {
     tfVersion = "loading...";
     ml5Version = "loading...";
     statusMessage = "";
+    modelStatusMessage = "";
+    resultMessage = "";
 
     trainFeatures;
     testFeatures;
@@ -132,6 +134,16 @@ export default class TfPlayground extends LightningElement {
     @api
     updateStatus(statusMessage) {
         this.statusMessage = statusMessage;
+    }
+
+    @api
+    updateModelStatus(modelStatusMessage) {
+        this.modelStatusMessage = modelStatusMessage;
+    }
+
+    @api
+    updateResult(resultMessage) {
+        this.resultMessage = resultMessage;
     }
 
 }
