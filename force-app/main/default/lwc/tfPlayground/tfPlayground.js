@@ -10,7 +10,9 @@ export default class TfPlayground extends LightningElement {
     ml5Version = "loading...";
     statusMessage = "";
     modelStatusMessage = "";
-    resultMessage = "";
+    progressPercentage = 0;
+    runButtonDisabled = true;
+    logs = [];
 
     trainFeatures;
     testFeatures;
@@ -123,6 +125,7 @@ export default class TfPlayground extends LightningElement {
     returnTfVersion(version) {
         console.log(`LWC-In returnTfVersion, ${version}`);
         this.tfVersion = version;
+        this.runButtonDisabled = false;
     }
 
     @api
@@ -142,8 +145,14 @@ export default class TfPlayground extends LightningElement {
     }
 
     @api
-    updateResult(resultMessage) {
-        this.resultMessage = resultMessage;
+    updateProgress(progress, totalProgress) {
+        this.progressPercentage = (progress * 100) / totalProgress;
+    }
+
+    @api
+    returnLogs(logs) {
+        this.logs = logs;
+        console.log(`Got logs, ${JSON.stringify(this.logs)}`);
     }
 
 }

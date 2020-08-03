@@ -7,14 +7,20 @@
         <div class="slds-m-around_medium">
             <lightning-layout vertical-align="end" class="slds-m-bottom_small">
                 <lightning-layout-item class="slds-p-left_xx-small">
-                    <lightning-button label="Run" onclick={handleRunBostonHousingClick}></lightning-button>
+                    <lightning-button label="Run" disabled={runButtonDisabled} onclick={handleRunBostonHousingClick}></lightning-button>
                 </lightning-layout-item>
             </lightning-layout>
             <lightning-layout vertical-align="end" class="slds-m-bottom_small">
                 <lightning-layout-item class="slds-p-left_xx-small">
-                    <p><lightning-formatted-text value={statusMessage}></lightning-formatted-text></p>
-                    <p><lightning-formatted-text value={modelStatusMessage}></lightning-formatted-text></p>
-                    <p><lightning-formatted-text value={resultMessage}></lightning-formatted-text></p>
+                    <div class="slds-m-around_small">
+                        <p><lightning-progress-bar value={progressPercentage} size="large"></lightning-progress-bar></p>
+                    </div>
+                    <div class="slds-m-around_small">
+                        <p><lightning-formatted-text value={statusMessage}></lightning-formatted-text></p>
+                    </div>
+                    <div class="slds-m-around_small">
+                        <p><lightning-formatted-text value={modelStatusMessage}></lightning-formatted-text></p>
+                    </div>
                 </lightning-layout-item>
             </lightning-layout>
         </div>

@@ -46,12 +46,15 @@
                     onEpochEnd: async (epoch, logs) => {
                         await playground.updateModelStatus(
                             `Epoch ${epoch + 1} of ${this.NUM_EPOCHS} completed.`);
+                        playground.updateProgress(epoch, this.NUM_EPOCHS);    
                         trainLogs.push(logs);
                         // tfvis.show.history(container, trainLogs, ['loss', 'val_loss'])
 
                     }
                 }
             });
+
+            playground.returnLogs(trainLogs);
 
             playground.updateStatus('Running on test data...');
             const result = model.evaluate(
