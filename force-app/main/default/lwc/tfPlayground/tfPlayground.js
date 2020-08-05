@@ -1,11 +1,17 @@
 import { LightningElement, api, track } from 'lwc';
 
+/* imports needed for loading Chart.js from static resources */
+import { loadScript, loadStyle } from 'lightning/platformResourceLoader';
+import chartjs from '@salesforce/resourceUrl/chartJs';
+
+
 /* Apex code to get the Boston Housing data and targets out of Salesforce records. */
 import findFeatures from '@salesforce/apex/BostonHousingController.findFeatures';
 import findTargets from '@salesforce/apex/BostonHousingController.findTargets';
 
 
 export default class TfPlayground extends LightningElement {
+    /* TensorFlow related fields. */
     tfVersion = "loading...";
     ml5Version = "loading...";
     statusMessage = "";
@@ -18,6 +24,42 @@ export default class TfPlayground extends LightningElement {
     testFeatures;
     trainTargets;
     testTargets;
+
+    /* Charting related fields. */
+    error;
+    chart;
+    chartjsInitialized = false;
+
+    config = {
+        type: 'line',
+        data: {
+            datasets: [
+                {
+                    data: [],
+                    backgroundColor: '#FF8080',
+                    borderColor: '#FF8080',
+                    label: 'loss',
+                    fill: false
+                },
+                {
+                    data: [],
+                    backgroundColor: '#8080FF',
+                    borderColor: '#8080FF',
+                    label: 'val loss',
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                xAxes: [{
+                  type: 'linear'
+                }]
+            }
+        }
+    };
+
 
     findTrainTargets() {
         return findTargets({ testKey: 'N' });
@@ -33,8 +75,8 @@ export default class TfPlayground extends LightningElement {
 
     findTestFeatures() {
         return findFeatures({ testKey: 'Y' });
-    }    
-    
+    }
+
     connectedCallback() {
         this.trainFeatures = [];
         this.testFeatures = [];
@@ -42,28 +84,54 @@ export default class TfPlayground extends LightningElement {
         this.testTargets = [];
 
         const removeId = (({ Id, ...o }) => o)
-    
+
         Promise.all([this.findTrainTargets(), this.findTestTargets(),
-            this.findTrainFeatures(), this.findTestFeatures()]).then(data => {
-                /* 
-                 * Each item is an array of arrays. This loop takes each item in each
-                 * array and removes the 'Id' keyed item from the object.
-                 * These objects didn't like Object.defineProperites so we have to make
-                 * new objects.
-                 */
-                let readyData = data.map(arr => arr.map(element => removeId(element)));
-                [this.trainTargets, this.testTargets, this.trainFeatures, this.testFeatures] = readyData;
-                console.log(`train length is ${this.trainTargets.length}, test length is ${this.testTargets.length}`);
-                console.log(`train length is ${this.trainFeatures.length}, test length is ${this.testFeatures.length}`);
-                // console.log(`data is ${JSON.stringify(this.testTargets)}`);
-                this.shuffle(this.trainFeatures, this.trainTargets);
-                this.shuffle(this.testFeatures, this.testTargets);
-            }).catch(error => {
-                console.log("Had an error");
-                console.log(error);
-                this.testTargets = [];
-            });    
-    }        
+        this.findTrainFeatures(), this.findTestFeatures()]).then(data => {
+            /* 
+             * Each item is an array of arrays. This loop takes each item in each
+             * array and removes the 'Id' keyed item from the object.
+             * These objects didn't like Object.defineProperites so we have to make
+             * new objects.
+             */
+            let readyData = data.map(arr => arr.map(element => removeId(element)));
+            [this.trainTargets, this.testTargets, this.trainFeatures, this.testFeatures] = readyData;
+            console.log(`train length is ${this.trainTargets.length}, test length is ${this.testTargets.length}`);
+            console.log(`train length is ${this.trainFeatures.length}, test length is ${this.testFeatures.length}`);
+            // console.log(`data is ${JSON.stringify(this.testTargets)}`);
+            this.shuffle(this.trainFeatures, this.trainTargets);
+            this.shuffle(this.testFeatures, this.testTargets);
+        }).catch(error => {
+            console.log("Had an error");
+            console.log(error);
+            this.testTargets = [];
+        });
+    }
+
+    renderedCallback() {
+        if (this.chartjsInitialized) {
+            return;
+        }
+        this.chartjsInitialized = true;
+
+        Promise.all([
+            loadScript(this, chartjs + '/Chart.min.js'),
+            loadStyle(this, chartjs + '/Chart.min.css')
+        ])
+            .then(() => {
+                // disable Chart.js CSS injection
+                window.Chart.platform.disableCSSInjection = true;
+
+                // const canvas = document.createElement('canvas');
+                // this.template.querySelector('div.chart').appendChild(canvas);
+                // const ctx = canvas.getContext('2d');
+                // this.chart = new window.Chart(ctx, this.config);
+            })
+            .catch((error) => {
+                this.error = error;
+                console.log(error.toString());
+            });
+    }
+
 
     handleGetTfVersionClick() {
         console.log('In Get TF Version Click');
@@ -152,7 +220,25 @@ export default class TfPlayground extends LightningElement {
     @api
     returnLogs(logs) {
         this.logs = logs;
-        console.log(`Got logs, ${JSON.stringify(this.logs)}`);
+        // console.log(`Got logs, ${JSON.stringify(this.logs)}`);
+        let loss = [];
+        let val_loss = [];
+
+        logs.forEach((log, i) => {
+            // loss.push(log.loss);
+            // val_loss.push(log.val_loss);
+            loss.push({x: i + 1, y: log.loss});
+            val_loss.push({x: i + 1, y: log.val_loss});
+        });
+
+        this.config.data.datasets[0].data = loss;
+        this.config.data.datasets[1].data = val_loss;
+
+        const canvas = document.createElement('canvas');
+        this.template.querySelector('div.chart').appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+        this.chart = new window.Chart(ctx, this.config);
+
     }
 
 }
