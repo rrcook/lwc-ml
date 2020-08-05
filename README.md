@@ -18,11 +18,9 @@ To prove the concept I used a common example project for TensorFlow.js, a linear
 
 ### TODOs
 
-This is a "Minimum Viable Product" - it shows the concepts needed to use TensorFlow.js in a Salesforce context with Salesforce data, but it could use more polish.
+I've added a chart using chart.js; the chart is in the LWC, since chart.js works there.
 
 Added will be
 + More comments where needed to explain what's going on
-+ More UI elements using LWCs
-+ If possible, import and display the chart that the TensorFlow code produces
 + Another project using the ML5 machine learning library
 
