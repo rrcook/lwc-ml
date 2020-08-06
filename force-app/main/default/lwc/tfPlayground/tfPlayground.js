@@ -11,25 +11,28 @@ import findTargets from '@salesforce/apex/BostonHousingController.findTargets';
 
 
 export default class TfPlayground extends LightningElement {
-    /* TensorFlow related fields. */
+    // Versions passed down from Aura component.
     tfVersion = "loading...";
     ml5Version = "loading...";
+
     statusMessage = "";
     modelStatusMessage = "";
-    progressPercentage = 0;
-    runButtonDisabled = true;
-    logs = [];
+    progressPercentage = 0; // Used by progress bar, percentage of epochs
+    runButtonDisabled = true; // Disable the run button until libs in Aura component are ready.
+    logs = []; // Loss values from fitting the model in Aura component.
 
+    // Data from Salesforce that will be passed to TF-hosting Aura component.
     trainFeatures;
     testFeatures;
     trainTargets;
     testTargets;
 
-    /* Charting related fields. */
+    // Charting related fields.
     error;
     chart;
     chartjsInitialized = false;
 
+    // Final data will be injected into this before charting.
     config = {
         type: 'line',
         data: {
@@ -60,7 +63,7 @@ export default class TfPlayground extends LightningElement {
         }
     };
 
-
+    // Methods that call Apex methods to get data from Salesforce.
     findTrainTargets() {
         return findTargets({ testKey: 'N' });
     }
@@ -77,6 +80,7 @@ export default class TfPlayground extends LightningElement {
         return findFeatures({ testKey: 'Y' });
     }
 
+    // Loads data from Salesforce and gets it ready for use by TensorFlow.
     connectedCallback() {
         this.trainFeatures = [];
         this.testFeatures = [];
@@ -94,10 +98,10 @@ export default class TfPlayground extends LightningElement {
              * new objects.
              */
             let readyData = data.map(arr => arr.map(element => removeId(element)));
+            // destructure and assign data without Salesforce Ids
             [this.trainTargets, this.testTargets, this.trainFeatures, this.testFeatures] = readyData;
-            console.log(`train length is ${this.trainTargets.length}, test length is ${this.testTargets.length}`);
-            console.log(`train length is ${this.trainFeatures.length}, test length is ${this.testFeatures.length}`);
-            // console.log(`data is ${JSON.stringify(this.testTargets)}`);
+
+            // Shuffle features and targets in lockstep for model use.
             this.shuffle(this.trainFeatures, this.trainTargets);
             this.shuffle(this.testFeatures, this.testTargets);
         }).catch(error => {
@@ -107,6 +111,10 @@ export default class TfPlayground extends LightningElement {
         });
     }
 
+    /**
+     * From the chart.js example in lwc-recipes.
+     * Load the chart.js scripts and get them set up. We'll use the chart later.
+     */
     renderedCallback() {
         if (this.chartjsInitialized) {
             return;
@@ -120,11 +128,6 @@ export default class TfPlayground extends LightningElement {
             .then(() => {
                 // disable Chart.js CSS injection
                 window.Chart.platform.disableCSSInjection = true;
-
-                // const canvas = document.createElement('canvas');
-                // this.template.querySelector('div.chart').appendChild(canvas);
-                // const ctx = canvas.getContext('2d');
-                // this.chart = new window.Chart(ctx, this.config);
             })
             .catch((error) => {
                 this.error = error;
@@ -132,23 +135,8 @@ export default class TfPlayground extends LightningElement {
             });
     }
 
-
-    handleGetTfVersionClick() {
-        console.log('In Get TF Version Click');
-        const getVersionEvent = new CustomEvent('gettfversion', {
-            detail: { message: 'hello' }
-        });
-        this.dispatchEvent(getVersionEvent);
-    }
-
-    handleGetMl5VersionClick() {
-        console.log('In Get ML5 Version Click');
-        const getVersionEvent = new CustomEvent('getml5version', {
-            detail: { message: 'hello' }
-        });
-        this.dispatchEvent(getVersionEvent);
-    }
-
+    // Through event bubbling, start Tensorflow in parent component. Aura component will send 
+    // results back down in @api methods.
     handleRunBostonHousingClick() {
         console.log('In Run Boston Housing Click');
         let bostonData = {
@@ -220,22 +208,30 @@ export default class TfPlayground extends LightningElement {
     @api
     returnLogs(logs) {
         this.logs = logs;
-        // console.log(`Got logs, ${JSON.stringify(this.logs)}`);
         let loss = [];
         let val_loss = [];
 
         logs.forEach((log, i) => {
-            // loss.push(log.loss);
-            // val_loss.push(log.val_loss);
+            // Set up logs data for display in chart.js
             loss.push({x: i + 1, y: log.loss});
             val_loss.push({x: i + 1, y: log.val_loss});
         });
 
+        // Inject data into chart.js config object.
         this.config.data.datasets[0].data = loss;
         this.config.data.datasets[1].data = val_loss;
 
+        // Remove old chart if run more than once.
+        const chartHolder = this.template.querySelector('div.chart');
+        try {
+            chartHolder.removeChild(chartHolder.lastChild);
+        } catch (error) {
+            console.log(error);
+        }
+
+        // Display chart.
         const canvas = document.createElement('canvas');
-        this.template.querySelector('div.chart').appendChild(canvas);
+        chartHolder.appendChild(canvas);
         const ctx = canvas.getContext('2d');
         this.chart = new window.Chart(ctx, this.config);
 
