@@ -21,6 +21,5 @@ To prove the concept I used a common example project for TensorFlow.js, a linear
 I've added a chart using chart.js; the chart is in the LWC, since chart.js works there.
 
 Added will be
-+ More comments where needed to explain what's going on
 + Another project using the ML5 machine learning library
 
