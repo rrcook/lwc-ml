@@ -4,15 +4,12 @@
     BATCH_SIZE: 40,
     LEARNING_RATE: 0.01,
 
+
+    // Variables used 'globally' by helper methods running TensorFlow.
     bostonData: {},
     tensors: {},
     numFeatures: 0,
 
-
-
-    helperMethod: function () {
-
-    },
 
     runBostonHousing: function (component, bostonData) {
         // Synchronous setup.
@@ -35,7 +32,6 @@
                 { optimizer: tf.train.sgd(this.LEARNING_RATE), loss: 'meanSquaredError' });
 
             let trainLogs = [];
-            // const container = document.querySelector(`#${modelName} .chart`);
 
             playground.updateStatus('Starting training process...');
             await model.fit(this.tensors.trainFeatures, this.tensors.trainTargets, {
@@ -44,12 +40,17 @@
                 validationSplit: 0.2,
                 callbacks: {
                     onEpochEnd: async (epoch, logs) => {
-                        await playground.updateModelStatus(
+                        // Notify the LWC on the progress being made.
+                        // A simple status string plus numerics to be used.
+                        // We happen to know the numbers are used on a progress bar. 
+                        playground.updateModelStatus(
                             `Epoch ${epoch + 1} of ${this.NUM_EPOCHS} completed.`);
                         playground.updateProgress(epoch, this.NUM_EPOCHS);    
+                        // Keep track of logs to send later. Logs are objects with loss and val_loss.
                         trainLogs.push(logs);
-                        // tfvis.show.history(container, trainLogs, ['loss', 'val_loss'])
 
+                        // From the original TensorFlow code. It's replaced with chart.js code in the LWC.
+                        // tfvis.show.history(container, trainLogs, ['loss', 'val_loss'])
                     }
                 }
             });
@@ -141,10 +142,6 @@
     // Convert loaded data into tensors and creates normalized versions of the
     // features.
     arraysToTensors: function () {
-        // console.log(`test features is ${JSON.stringify(this.bostonData.testFeatures)}`);
-        // let tester = this.bostonData.testFeatures.map(this.createArrayFromData);
-        // let tester = this.bostonData.testFeatures);
-        // console.log(`host tester is ${JSON.stringify(tester)}`);
         this.tensors.rawTrainFeatures = tf.tensor2d(this.bostonData.trainFeatures.map(this.createArrayFromFeatures));
         this.tensors.trainTargets = tf.tensor2d(this.bostonData.trainTargets.map(this.createArrayFromTarget));
         this.tensors.rawTestFeatures = tf.tensor2d(this.bostonData.testFeatures.map(this.createArrayFromFeatures));

@@ -1,5 +1,6 @@
 ({
 
+    // Send library versions to LWC so it knows that we're open for business.
     scriptsLoaded: function(component, event, helper) {
         console.log('Aura-Scripts loaded.');
         const playground = component.find('playground');
@@ -36,6 +37,7 @@
         component.find('playground').returnMl5Version(version);
     },
 
+    // Receive the runbostonhousing event and start running TensorFlow code in the helper.
     handleRunBostonHousing: function(component, event, helper) {
         let eraseme = event.getParam('bostonData');
         console.log(`controller train features length ${eraseme.trainFeatures.length}`);
